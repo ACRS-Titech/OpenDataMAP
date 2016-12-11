@@ -1,1 +1,1 @@
-# OpenDataMAP
+# Earthquake
