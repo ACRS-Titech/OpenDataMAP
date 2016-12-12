@@ -15,7 +15,7 @@ function initialize() {
   //add markers
   addMarkers();
 }
-/*
+
 function getLocation(){
   if(navigator.geolocation){
      navigator.geolocation.getCurrentPosition(showPosition);
@@ -33,7 +33,7 @@ function showPosition(position){
   //set the center to user's current location
   map.setCenter(new google.maps.LatLng(lat, lng));
 }
-*/
+
 function addMarkers(locations){
 
   if(locations===undefined){
