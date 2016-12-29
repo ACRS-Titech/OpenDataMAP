@@ -1,55 +1,248 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Code for Japan</title>
+    <link rel="shortcut icon" href="icon/insyoukuten.png">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+    <style>
+        html, body, #map {
+          height: 600px;
+          font-family: "Avenir LT W01 35 Light", "Century Gothic", "Meiryo", Helvetica, Arial, sans-serif;
+        }
+        #showpoint{background-color: #fff8dc;}
+        #title {
+          position: absolute;
+          z-index: 999;
+          top: 15px;
+          right: 45px;
+          color: #fff;
+        }
+        /* Custom icon style */
+        .leaflet-avator-icon {
+          border: 4px #fff solid; /* Inner border */
+          border-radius: 40px; /* Making round */
+          -webkit-border-radius: 40px;
+          box-shadow: 0 0 0 2px #00D0CE, 0 8px 5px rgba(0,0,0,0.4); /* Outer border and shadow */
+        }
 
-	<head>
+        /* Custom Popup */
+        .leaflet-popup {
+          width: 300px;
+          transition: opacity 1s linear;
+        }
 
-		<title>Utsunomiya Mapping</title>
-		<script src="js/jquery-1.11.2.min.js" type="text/javascript"></script>
-		<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script> -->
-		<link rel="stylesheet" type="text/css" href="css/index.css">
-		<script type="text/javascript" src="js/googlemap.js"></script>
+        .leaflet-popup-content-wrapper {
+          width: 280px;
+          border-radius: 0;
+          float: left;
+          color: white;
+          background: rgba(255,100,0,0.8);
+          box-shadow: 0 0 0 rgba(0,0,0,0);
+        }
 
-	</head>
+        .leaflet-popup-content-wrapper a {
+          color: white;
+          font-size: 12pt;
+        }
+        .leaflet-popup-content-wrapper h1 {
+          color: white;
+          font-size: 22pt;
+        }
+        .leaflet-popup-content-wrapper h2 {
+          color: white;
+          font-size: 18pt;
+        }
+        .leaflet-popup-content-wrapper h3 {
+          color: white;
+          font-size: 16pt;
+        }
+        .leaflet-popup-content-wrapper h4 {
+          color: white;
+          font-size: 14pt;
+        }
+        .leaflet-popup-content-wrapper h5 {
+          color: white;
+          font-size: 12pt;
+        }
+        .leaflet-popup-content-wrapper p {
+          color: white;
+          font-size: 12pt;
+        }
 
-	<body>
+        .leaflet-popup-tip-container {
+          height: 70px;
+          margin-bottom: 6px;
+        }
+        .leaflet-popup-tip {
+          display: none;
+          background: rgba(0,0,0,0);
+          box-shadow: 0 0 0 rgba(0,0,0,0);
+        }
+        .leaflet-popup-tip-svg {
+          margin: 0 auto;
+          position: relative;
+          overflow: hidden;
+          display: block;
+          width: 2px;
+          height: 100px;
+        }
 
-		<div id="header" class="fixed">
-			<h1>code for ustunomiya</h1>
-		</div>
+        .leaflet-container a.leaflet-popup-close-button {
+          color: white;
+          padding: 9px 25px 0 0;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+          color: #ffe8a5;
+        }
 
-		<div id="main">
+    </style>
+  </head>
 
-			<div id="left_pane">
+  <body>
+    <div id="title"><p>Lo Pro</p></div>
+    <div id="map-wrapper">
+      <div>
+      <input type="button" id="showpoint" value="Show points">
+      <div id="map"></div>
+      </div>
+    </div>
 
-				<h2>Chisanchisyo</h2>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.js"></script>
+<script>
+$(function () {
+  console.log('%c⚛ Hack for Civil! ⚛', 'font-family:monospace;font-size:16px;color:darkblue;');
 
-				<div class="feed_block">
-					<p class="feed_group_title">test</p>
-					<p class="feed_group_subtitle">test</p>
-					<ul>
-						<li>
-							<a href="./data/tenpo.geojson">shop</a>
-						</li>
-						<li>
-							<a href="./data/fact.geojson">factory</a>
-						</li>
-						<li>
-							<a href="./data/super.geojson">super market</a>
-						</li>
-						<li>
-							<a href="./data/shop.geojson">shop</a>
-						</li>
+  // Leaflet Map Init
+  function initMap() {
+    var map = L.map('map', { closePopupOnClick: false }).setView([36.558852, 139.898126], 14);
 
-					</ul>
-				</div>
+    // Extend Leaflet Icon
+    var AvatarIcon = L.Icon.extend({
+      options: {
+        className: 'leaflet-avator-icon', // Custom Icon Class
+        iconSize: [40, 40], // Avatar Image Size
+        iconAnchor: [20, 20], // Centralizing icon
+        popupAnchor: [3, -20] // Centralizing popup
+      }
+    });
+
+    // Custom Popup
+    map.on('popupopen', function () {
+      var svg = d3.select('.leaflet-popup-tip-container').append('svg')
+          .attr({
+            class: 'leaflet-popup-tip-svg',
+            width: 2,
+            height: 100,
+          });
+      var c1 = [1, 0];
+      var c2 = [1, 91];
+      var carray = [c1, c2];
+      var line = d3.svg.line()
+          .x(function (d) {return d[0];})
+          .y(function (d) {return d[1];});
+      var path = svg.append('path')
+          .attr({
+            'class': 'leaflet-popup-tip-path',
+            'd': line(carray),
+            'stroke': 'rgba(255,100,0,0.8)',
+            'stroke-width': 2,
+            'stroke-dashoffset': 91
+          })
+          .style('stroke-dasharray', '91')
+          .style('stroke-linecap', 'round');
+      path.transition().delay(300).duration(1000).attr('stroke-dashoffset', 0);
+    });
+    map.on('popupclose', function (e) {
+      e.popup._tipContainer.children[1].remove();
+    });
+
+    L.tileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+        '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+      id: 'osm'
+    }).addTo(map);
+
+    $.get('https://api.github.com/orgs/muxlab/members', function (res) {
+      $.each(res, function (i, val) {
+        //var icon = new AvatarIcon({ iconUrl: "./icon/insyokuten.png" });
+        var icon = L.icon({
+          iconUrl: './icon/insyoukuten.png',
+          iconSize: [25, 41],
+          iconAnchor: [13, 40],
+          popupAnchor: [0, -32]
+        });
+        // Placing at random
+        L.marker([30.591 + (45.3122 - 30.591) * Math.random(), 129.339 + (145.49 - 129.339) * Math.random()], {
+          alt: 'avator',
+          icon: icon
+        })
+          .addTo(map)
+          .bindPopup('<h1>This is</h1><h3>a custom popup</h3><p><a target="_brank" href="' + val.html_url + '"><b>' + val.login + '</b><img style="margin-left:10px; top:5px; position:relative;" src="../img/github.svg" /></a></p>');
+      });
+    });
+
+
+  //お店のlayer
+  $.getJSON( './data/shop.geojson', function ( data ) {
+    var icon = L.icon({
+      iconUrl: './icon/insyoukuten.png',
+      iconSize: [25, 41],
+      iconAnchor: [13, 40],
+      popupAnchor: [0, -32]
+    });
+    var geojson = L.geoJson( data, {
+          onEachFeature: function ( feature, layer ) {
+            //if ( feature.properties && feature.properties.popupContent ) {
+                layer.bindPopup( '<b>' + feature.properties.name + '</b><br />' + feature.properties.address );
+            //}
+          }
+        , pointToLayer: function( feature, latlng ) {
+            var icn = icon; // デフォルトアイコンを指定
+            //if ( feature.properties && feature.properties.category === '1' ) { //  "category": "1" の場合。 "category": 1 の場合 === 1 とする
+                //icn = redIcon;
+            //}
+            return L.marker( latlng, { icon: icn });
+          }
+    });
+    geojson.addTo(map);
+  });
+  //お店のlayer
+  $.getJSON( './data/tenpo.geojson', function ( data ) {
+    var icon = L.icon({
+      iconUrl: './icon/ryohanten.png',
+      iconSize: [25, 41],
+      iconAnchor: [13, 40],
+      popupAnchor: [0, -32]
+    });
+    var geojson = L.geoJson( data, {
+          onEachFeature: function ( feature, layer ) {
+            //if ( feature.properties && feature.properties.popupContent ) {
+                layer.bindPopup( '<b>' + feature.properties.name + '</b><br />' + feature.properties.address );
+            //}
+          }
+        , pointToLayer: function( feature, latlng ) {
+            var icn = icon; // デフォルトアイコンを指定
+            //if ( feature.properties && feature.properties.category === '1' ) { //  "category": "1" の場合。 "category": 1 の場合 === 1 とする
+                //icn = redIcon;
+            //}
+            return L.marker( latlng, { icon: icn });
+          }
+    });
+    geojson.addTo(map);
+  });
 
 
 
-			</div>
+  }
 
-			<div id="map_canvas"></div>
-		</div>
-		<div id="footer"></div>
-	</body>
+  initMap();
 
+});
+</script>
+  </body>
 </html>
